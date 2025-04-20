@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import cv2
@@ -20,6 +21,80 @@ import os
 import select
 import time
 
+# 自定义扁平化风格
+class FlatStyle:
+    @staticmethod
+    def configure_styles():
+        style = ttk.Style()
+        
+        # 主框架样式
+        style.configure('TFrame', background='#f5f5f5')
+        
+        # 按钮样式
+        style.configure('TButton', 
+                       foreground='#333333',
+                       background='#e0e0e0',
+                       borderwidth=0,
+                       padding=6,)
+        style.map('TButton',
+                 foreground=[('pressed', '#ffffff'), ('active', '#333333')],
+                 background=[('pressed', '#4CAF50'), ('active', '#f0f0f0')])
+        
+        # 标签样式
+        style.configure('TLabel', 
+                       background='#f5f5f5',
+                       foreground='#333333',)
+        
+        # 输入框样式
+        style.configure('TEntry',
+                       fieldbackground='#ffffff',
+                       foreground='#333333',
+                       borderwidth=1,
+                       relief='flat',
+                       padding=5)
+        
+        # 组合框样式
+        style.configure('TCombobox',
+                       fieldbackground='#ffffff',
+                       foreground='#333333',
+                       selectbackground='#4CAF50',
+                       selectforeground='#ffffff',
+                       borderwidth=1,
+                       relief='flat',
+                       padding=5)
+        
+        # 标签框架样式
+        style.configure('TLabelframe',
+                       background='#f5f5f5',
+                       foreground='#333333',
+                       borderwidth=1,
+                       relief='flat')
+        style.configure('TLabelframe.Label',
+                       background='#f5f5f5',
+                       foreground='#4CAF50',)
+        
+        # 树视图样式
+        style.configure('Treeview',
+                       background='#ffffff',
+                       foreground='#333333',
+                       fieldbackground='#ffffff',
+                       borderwidth=0,)
+        style.map('Treeview',
+                 background=[('selected', '#4CAF50')],
+                 foreground=[('selected', '#ffffff')])
+        
+        # 滚动条样式
+        style.configure('Vertical.TScrollbar',
+                       background='#e0e0e0',
+                       troughcolor='#f5f5f5',
+                       borderwidth=0,
+                       arrowsize=12)
+        style.configure('Horizontal.TScrollbar',
+                       background='#e0e0e0',
+                       troughcolor='#f5f5f5',
+                       borderwidth=0,
+                       arrowsize=12)
+        
 class EmailClient:
     def __init__(self):
         self.imap_server = "imap.qq.com"
@@ -198,12 +273,47 @@ class EmailClient:
             return True
         except Exception as e:
             print(f"标记已读错误: {e}")
-            return False
+            return False            
 
 class VideoChatApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("视频聊天与邮件应用")
+        self.root.title("ChatAPP")
+    
+        # 改进的字体设置 - 添加更多备选字体
+        font_list = [
+            'Microsoft YaHei',  # Windows
+            'WenQuanYi Micro Hei',  # Linux
+            'PingFang SC',  # Mac
+            'SimHei',  # 黑体
+            'Arial Unicode MS'  # 跨平台
+        ]
+        
+        # 尝试找到系统可用的中文字体
+        available_font = None
+        for font in font_list:
+            try:
+                tk.Label(root, text="测试", font=(font, 10)).destroy()
+                available_font = font
+                break
+            except:
+                continue
+        
+        if available_font is None:
+            available_font = 'TkDefaultFont'  # 回退到默认字体
+        
+        # 设置全局字体
+        default_font = (available_font, 10)
+        self.root.option_add('*Font', default_font)
+        
+        # 对于Text控件单独设置字体
+        text_font = (available_font, 10)
+        
+        # 应用扁平化样式
+        FlatStyle.configure_styles()
+        
+        # 设置窗口最小尺寸
+        self.root.minsize(1000, 700)
         
         # 网络配置
         self.protocol = "UDP"
@@ -727,9 +837,28 @@ class VideoChatApp:
             
         self.root.after(50, self.update_video)
         
+    def update_video(self):
+        # 更新本地视频
+        if not self.frame_queue.empty():
+            frame = self.frame_queue.queue[-1]
+            img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = cv2.resize(img, (320, 240))
+            img_tk = self.get_tk_image(img)
+            self.local_video.config(image=img_tk)
+            self.local_video.image = img_tk
+            
+        # 更新远程视频
+        if self.remote_frame is not None:
+            img = cv2.resize(self.remote_frame, (320, 240))
+            img_tk = self.get_tk_image(img)
+            self.remote_video.config(image=img_tk)
+            self.remote_video.image = img_tk
+            
+        self.root.after(50, self.update_video)
+        
     def get_tk_image(self, image):
         from PIL import Image, ImageTk
-        return ImageTk.PhotoImage(image=Image.fromarray(image))
+        return ImageTk.PhotoImage(image=Image.fromarray(image))        
 
 if __name__ == "__main__":
     root = tk.Tk()
