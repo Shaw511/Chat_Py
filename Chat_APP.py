@@ -317,10 +317,10 @@ class VideoChatApp:
         
         # 网络配置
         self.protocol = "UDP"
-        self.ip = "192.168.26.205"
-        self.port = 5001
-        self.remote_ip = "192.168.26.123"
-        self.remote_port = 8000
+        self.ip = "127.0.0.1"
+        self.port = 8000
+        self.remote_ip = "127.0.0.1"
+        self.remote_port = 8001
         
         # 视频参数
         self.cam = cv2.VideoCapture(0)
